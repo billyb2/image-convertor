@@ -1,7 +1,7 @@
 use axum::{extract::DefaultBodyLimit, http::StatusCode, routing::post, Router};
 use axum_msgpack::MsgPack;
 use image::{
-    codecs::{avif::AvifEncoder, jpeg::JpegEncoder, png::PngEncoder},
+    codecs::{avif::AvifEncoder, jpeg::JpegEncoder, png::PngEncoder, webp::WebPEncoder},
     ImageEncoder,
 };
 use serde::{Deserialize, Serialize};
@@ -22,6 +22,7 @@ pub enum ImageFormat {
     Jpg,
     Avif,
     Png,
+    Webp,
 }
 
 impl From<ImageFormat> for image::ImageFormat {
@@ -30,6 +31,7 @@ impl From<ImageFormat> for image::ImageFormat {
             ImageFormat::Jpg => image::ImageFormat::Jpeg,
             ImageFormat::Avif => image::ImageFormat::Avif,
             ImageFormat::Png => image::ImageFormat::Png,
+            ImageFormat::Webp => image::ImageFormat::WebP,
         }
     }
 }
@@ -90,6 +92,17 @@ async fn convert_image(MsgPack(req): MsgPack<ImageProcessingRequest>) -> (Status
                             image::codecs::png::CompressionType::Default,
                             image::codecs::png::FilterType::Adaptive,
                         );
+                        encoder
+                            .write_image(
+                                image.as_bytes(),
+                                image.width(),
+                                image.height(),
+                                image.color(),
+                            )
+                            .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+                    }
+                    ImageFormat::Webp => {
+                        let encoder = WebPEncoder::new_lossless(&mut buffer);
                         encoder
                             .write_image(
                                 image.as_bytes(),

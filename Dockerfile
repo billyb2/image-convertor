@@ -1,12 +1,9 @@
-FROM rust:1-slim-bookworm as builder
-
+FROM rust:alpine as builder
 WORKDIR /
-ADD . .
-RUN apt-get update && apt-get install nasm -y
-RUN cargo build --release
+RUN apk add nasm libwebp-dev clang-static musl-dev pkgconf libdav1d dav1d git meson ninja
+COPY . .
+RUN SYSTEM_DEPS_LINK=static SYSTEM_DEPS_BUILD_INTERNAL=always cargo build --release
 
-FROM debian:bookworm-slim
-
-WORKDIR /app
-COPY --from=builder /target/release/image_conversion .
-CMD /app/image_conversion
+FROM scratch
+COPY --from=builder /target/release/image_conversion /
+CMD ["/image_conversion"]

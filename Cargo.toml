@@ -10,9 +10,12 @@ lto = "fat"
 axum = { version = "0.7", features = ["macros"] }
 axum-msgpack = "0.4"
 image = { version = "0.24", default-features = false, features = [
-    "avif-encoder",
+    "avif",
+    "avif-decoder",
     "jpeg",
     "png",
+    "webp",
+    "webp-encoder",
 ] }
 serde = { version = "1", features = ["derive"] }
 serde_bytes = "0.11"
